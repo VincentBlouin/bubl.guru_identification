@@ -19,7 +19,7 @@
 
     <name>${project.groupId}:${project.artifactId}</name>
     <description>
-        Seach and index related identifications
+        Search and index related identifications
     </description>
     <url>about.bubl.guru</url>
     <licenses>
