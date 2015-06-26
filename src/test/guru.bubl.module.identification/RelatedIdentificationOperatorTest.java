@@ -5,8 +5,8 @@
 package guru.bubl.module.identification;
 
 import com.google.inject.Injector;
+import guru.bubl.module.model.User;
 import guru.bubl.module.model.graph.AdaptableGraphComponentTest;
-import guru.bubl.module.model.graph.GraphFactory;
 import guru.bubl.module.model.graph.vertex.VertexOperator;
 import guru.bubl.module.model.test.scenarios.TestScenarios;
 import org.junit.Before;
@@ -28,7 +28,7 @@ public class RelatedIdentificationOperatorTest extends AdaptableGraphComponentTe
     @Before
     public void beforeIdentificationTest(){
         identificationInjector = injector.createChildInjector(
-                new IdentificationModule()
+                new IdentificationModuleNeo4j()
         );
         relatedIdentificationOperator = identificationInjector.getInstance(
                 RelatedIdentificationOperator.class
@@ -37,19 +37,24 @@ public class RelatedIdentificationOperatorTest extends AdaptableGraphComponentTe
 
     @Test
     public void can_get_related_identification(){
+        User user = User.withEmailAndUsername("a", "b");
         assertTrue(
-                relatedIdentificationOperator.getResourcesRelatedToIdentification(
-                        modelTestScenarios.tShirt()
+                relatedIdentificationOperator.getResourcesRelatedToIdentificationForUser(
+                        modelTestScenarios.tShirt(),
+                        user
                 ).isEmpty()
         );
-        VertexOperator aVertexRepresentingATshirt = testScenarios.createAVertex();
+        VertexOperator aVertexRepresentingATshirt = testScenarios.createAVertex(
+                user
+        );
         relatedIdentificationOperator.relateResourceToIdentification(
                 aVertexRepresentingATshirt,
                 modelTestScenarios.tShirt()
         );
         assertTrue(
-                relatedIdentificationOperator.getResourcesRelatedToIdentification(
-                        modelTestScenarios.tShirt()
+                relatedIdentificationOperator.getResourcesRelatedToIdentificationForUser(
+                        modelTestScenarios.tShirt(),
+                        user
                 ).contains(aVertexRepresentingATshirt)
         );
     }

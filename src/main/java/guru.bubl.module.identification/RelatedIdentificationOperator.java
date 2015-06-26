@@ -5,6 +5,7 @@
 package guru.bubl.module.identification;
 
 import guru.bubl.module.model.FriendlyResource;
+import guru.bubl.module.model.User;
 import guru.bubl.module.model.graph.Identification;
 
 import java.util.Set;
@@ -15,7 +16,8 @@ public interface RelatedIdentificationOperator {
             Identification identification
     );
 
-    Set<FriendlyResource> getResourcesRelatedToIdentification(
-            Identification identification
+    Set<FriendlyResource> getResourcesRelatedToIdentificationForUser(
+            Identification identification,
+            User user
     );
 }
