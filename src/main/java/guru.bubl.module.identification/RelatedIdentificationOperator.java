@@ -4,19 +4,19 @@
 
 package guru.bubl.module.identification;
 
-import guru.bubl.module.model.FriendlyResource;
 import guru.bubl.module.model.User;
+import guru.bubl.module.model.graph.FriendlyResourcePojo;
 import guru.bubl.module.model.graph.Identification;
 
 import java.util.Set;
 
 public interface RelatedIdentificationOperator {
     RelatedIdentificationOperator relateResourceToIdentification(
-            FriendlyResource relatedResource,
+            FriendlyResourcePojo relatedResource,
             Identification identification
     );
 
-    Set<FriendlyResource> getResourcesRelatedToIdentificationForUser(
+    Set<FriendlyResourcePojo> getResourcesRelatedToIdentificationForUser(
             Identification identification,
             User user
     );

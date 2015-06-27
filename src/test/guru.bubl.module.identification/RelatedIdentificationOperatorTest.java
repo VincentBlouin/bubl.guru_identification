@@ -7,6 +7,7 @@ package guru.bubl.module.identification;
 import com.google.inject.Injector;
 import guru.bubl.module.model.User;
 import guru.bubl.module.model.graph.AdaptableGraphComponentTest;
+import guru.bubl.module.model.graph.FriendlyResourcePojo;
 import guru.bubl.module.model.graph.vertex.VertexOperator;
 import guru.bubl.module.model.test.scenarios.TestScenarios;
 import org.junit.Before;
@@ -16,7 +17,7 @@ import javax.inject.Inject;
 
 import static org.junit.Assert.assertTrue;
 
-public class RelatedIdentificationOperatorTest extends AdaptableGraphComponentTest{
+public class RelatedIdentificationOperatorTest extends AdaptableGraphComponentTest {
 
     protected static Injector identificationInjector;
 
@@ -26,7 +27,7 @@ public class RelatedIdentificationOperatorTest extends AdaptableGraphComponentTe
     RelatedIdentificationOperator relatedIdentificationOperator;
 
     @Before
-    public void beforeIdentificationTest(){
+    public void beforeIdentificationTest() {
         identificationInjector = injector.createChildInjector(
                 new IdentificationModuleNeo4j()
         );
@@ -36,7 +37,7 @@ public class RelatedIdentificationOperatorTest extends AdaptableGraphComponentTe
     }
 
     @Test
-    public void can_get_related_identification(){
+    public void can_get_related_identification() {
         User user = User.withEmailAndUsername("a", "b");
         assertTrue(
                 relatedIdentificationOperator.getResourcesRelatedToIdentificationForUser(
@@ -44,9 +45,12 @@ public class RelatedIdentificationOperatorTest extends AdaptableGraphComponentTe
                         user
                 ).isEmpty()
         );
-        VertexOperator aVertexRepresentingATshirt = testScenarios.createAVertex(
-                user
+        FriendlyResourcePojo aVertexRepresentingATshirt = new FriendlyResourcePojo(
+                testScenarios.createAVertex(
+                        user
+                ).uri()
         );
+
         relatedIdentificationOperator.relateResourceToIdentification(
                 aVertexRepresentingATshirt,
                 modelTestScenarios.tShirt()
@@ -55,7 +59,9 @@ public class RelatedIdentificationOperatorTest extends AdaptableGraphComponentTe
                 relatedIdentificationOperator.getResourcesRelatedToIdentificationForUser(
                         modelTestScenarios.tShirt(),
                         user
-                ).contains(aVertexRepresentingATshirt)
+                ).contains(
+                        aVertexRepresentingATshirt
+                )
         );
     }
 }

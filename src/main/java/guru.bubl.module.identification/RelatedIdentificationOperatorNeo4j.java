@@ -4,18 +4,12 @@
 
 package guru.bubl.module.identification;
 
-import guru.bubl.module.model.FriendlyResource;
 import guru.bubl.module.model.User;
 import guru.bubl.module.model.graph.FriendlyResourcePojo;
 import guru.bubl.module.model.graph.Identification;
-import guru.bubl.module.model.json.ImageJson;
+import guru.bubl.module.model.json.FriendlyResourceJson;
 import guru.bubl.module.neo4j_graph_manipulator.graph.Neo4jFriendlyResource;
-import guru.bubl.module.neo4j_graph_manipulator.graph.Neo4jIdentificationFactory;
-import guru.bubl.module.neo4j_graph_manipulator.graph.graph.Neo4jIdentification;
-import org.apache.commons.lang.StringUtils;
 import org.codehaus.jettison.json.JSONArray;
-import org.codehaus.jettison.json.JSONException;
-import org.codehaus.jettison.json.JSONObject;
 import org.neo4j.rest.graphdb.query.QueryEngine;
 import org.neo4j.rest.graphdb.util.QueryResult;
 
@@ -29,6 +23,7 @@ import static guru.bubl.module.neo4j_graph_manipulator.graph.Neo4jRestApiUtils.m
 
 public class RelatedIdentificationOperatorNeo4j implements RelatedIdentificationOperator {
     enum props {
+        identification_uri,
         related_uris
     }
 
@@ -36,32 +31,41 @@ public class RelatedIdentificationOperatorNeo4j implements RelatedIdentification
     protected QueryEngine queryEngine;
 
     @Override
-    public RelatedIdentificationOperator relateResourceToIdentification(FriendlyResource relatedResource, Identification identification) {
-        getResourcesRelatedToIdentificationForUsername(
+    public RelatedIdentificationOperator relateResourceToIdentification(FriendlyResourcePojo relatedResource, Identification identification) {
+        Set<FriendlyResourcePojo> relatedResources = getResourcesRelatedToIdentificationForUsername(
                 identification,
                 relatedResource.getOwnerUsername()
         );
-        String query = "";
+        relatedResources.add(
+                relatedResource
+        );
+        String query = "MERGE (node {" +
+                props.identification_uri + ":{" + props.identification_uri + "}, " +
+                Neo4jFriendlyResource.props.owner + ": {" + Neo4jFriendlyResource.props.owner + "}" +
+                "}) " +
+                "SET node." + props.related_uris + "= { " + props.related_uris + "} ";
         queryEngine.query(
-                "",
-                map()
+                query,
+                map(
+                        props.identification_uri.name(), identification.getExternalResourceUri().toString(),
+                        Neo4jFriendlyResource.props.owner.name(), relatedResource.getOwnerUsername(),
+                        props.related_uris.name(), FriendlyResourceJson.multipleToJson(relatedResources)
+                )
         );
         return this;
     }
 
     @Override
-    public Set<FriendlyResource> getResourcesRelatedToIdentificationForUser(Identification identification, User user) {
+    public Set<FriendlyResourcePojo> getResourcesRelatedToIdentificationForUser(Identification identification, User user) {
         return getResourcesRelatedToIdentificationForUsername(
                 identification,
                 user.username()
         );
     }
 
-    private Set<FriendlyResource> getResourcesRelatedToIdentificationForUsername(Identification identification, String username) {
-        String query = "START node=node:node_auto_index('" +
-                Neo4jFriendlyResource.props.uri + ":" + identification.uri() + " AND " +
-                Neo4jFriendlyResource.props.owner + ":" + username + "') " +
-                "return node.related_uris as related_uris";
+    private Set<FriendlyResourcePojo> getResourcesRelatedToIdentificationForUsername(Identification identification, String username) {
+        String query = buildQueryPrefix(identification, username) +
+                "return node." + props.related_uris + " as related_uris";
         QueryResult<Map<String, Object>> result = queryEngine.query(
                 query,
                 map()
@@ -73,23 +77,24 @@ public class RelatedIdentificationOperatorNeo4j implements RelatedIdentification
         if (relatedUrisValue == null) {
             return new HashSet<>();
         }
-        Set<FriendlyResource> relatedIdentifications = new HashSet<>();
-        try {
-            JSONArray uris = new JSONArray(
-                    relatedUrisValue.toString()
+        return FriendlyResourceJson.fromJsonToSet(
+                relatedUrisValue.toString()
+        );
+    }
+
+    private String buildQueryPrefix(Identification identification, String username) {
+        return "START node=node:node_auto_index('" +
+                props.identification_uri + ":\"" + identification.getExternalResourceUri() + "\" AND " +
+                Neo4jFriendlyResource.props.owner + ":" + username + "') ";
+    }
+
+    private JSONArray uriArrayFromResources(Set<URI> identificationUris) {
+        JSONArray array = new JSONArray();
+        for (URI uri : identificationUris) {
+            array.put(
+                    uri
             );
-            for (int i = 0; i < uris.length(); i++) {
-                relatedIdentifications.add(
-                        new FriendlyResourcePojo(
-                                URI.create(
-                                        uris.getString(i)
-                                )
-                        )
-                );
-            }
-        } catch (JSONException e) {
-            throw new RuntimeException(e);
         }
-        return relatedIdentifications;
+        return array;
     }
 }
