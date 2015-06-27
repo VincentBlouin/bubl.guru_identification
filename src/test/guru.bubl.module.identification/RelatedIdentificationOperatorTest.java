@@ -94,4 +94,30 @@ public class RelatedIdentificationOperatorTest extends AdaptableGraphComponentTe
                 ).isEmpty()
         );
     }
+
+    @Test
+    public void cannot_get_related_identifications_of_another_user() {
+        User user1 = User.withEmailAndUsername("a", "b");
+        FriendlyResourcePojo user1Resource = new FriendlyResourcePojo(
+                testScenarios.createAVertex(
+                        user1
+                ).uri()
+        );
+        relatedIdentificationOperator.relateResourceToIdentification(
+                user1Resource,
+                modelTestScenarios.tShirt()
+        );
+        assertFalse(
+                relatedIdentificationOperator.getResourcesRelatedToIdentificationForUser(
+                        modelTestScenarios.tShirt(),
+                        user1
+                ).isEmpty()
+        );
+        assertTrue(
+                relatedIdentificationOperator.getResourcesRelatedToIdentificationForUser(
+                        modelTestScenarios.tShirt(),
+                        User.withEmailAndUsername("c", "d")
+                ).isEmpty()
+        );
+    }
 }

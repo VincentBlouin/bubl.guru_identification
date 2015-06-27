@@ -9,12 +9,10 @@ import guru.bubl.module.model.graph.FriendlyResourcePojo;
 import guru.bubl.module.model.graph.Identification;
 import guru.bubl.module.model.json.FriendlyResourceJson;
 import guru.bubl.module.neo4j_graph_manipulator.graph.Neo4jFriendlyResource;
-import org.codehaus.jettison.json.JSONArray;
 import org.neo4j.rest.graphdb.query.QueryEngine;
 import org.neo4j.rest.graphdb.util.QueryResult;
 
 import javax.inject.Inject;
-import java.net.URI;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
