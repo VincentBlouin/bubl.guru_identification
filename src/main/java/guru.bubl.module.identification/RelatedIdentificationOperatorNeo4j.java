@@ -39,18 +39,27 @@ public class RelatedIdentificationOperatorNeo4j implements RelatedIdentification
         relatedResources.add(
                 relatedResource
         );
-        String query = "MERGE (node {" +
-                props.identification_uri + ":{" + props.identification_uri + "}, " +
-                Neo4jFriendlyResource.props.owner + ": {" + Neo4jFriendlyResource.props.owner + "}" +
-                "}) " +
-                "SET node." + props.related_uris + "= { " + props.related_uris + "} ";
-        queryEngine.query(
-                query,
-                map(
-                        props.identification_uri.name(), identification.getExternalResourceUri().toString(),
-                        Neo4jFriendlyResource.props.owner.name(), relatedResource.getOwnerUsername(),
-                        props.related_uris.name(), FriendlyResourceJson.multipleToJson(relatedResources)
-                )
+        setRelatedResourcesForIdentification(
+                relatedResources,
+                identification,
+                relatedResource.getOwnerUsername()
+        );
+        return this;
+    }
+
+    @Override
+    public RelatedIdentificationOperator removeRelatedResourceToIdentification(FriendlyResourcePojo relatedResource, Identification identification) {
+        Set<FriendlyResourcePojo> relatedResources = getResourcesRelatedToIdentificationForUsername(
+                identification,
+                relatedResource.getOwnerUsername()
+        );
+        relatedResources.remove(
+                relatedResource
+        );
+        setRelatedResourcesForIdentification(
+                relatedResources,
+                identification,
+                relatedResource.getOwnerUsername()
         );
         return this;
     }
@@ -60,6 +69,22 @@ public class RelatedIdentificationOperatorNeo4j implements RelatedIdentification
         return getResourcesRelatedToIdentificationForUsername(
                 identification,
                 user.username()
+        );
+    }
+
+    private void setRelatedResourcesForIdentification(Set<FriendlyResourcePojo> relatedResources, Identification identification, String ownerUserName){
+        String query = "MERGE (node {" +
+                props.identification_uri + ":{" + props.identification_uri + "}, " +
+                Neo4jFriendlyResource.props.owner + ": {" + Neo4jFriendlyResource.props.owner + "}" +
+                "}) " +
+                "SET node." + props.related_uris + "= { " + props.related_uris + "} ";
+        queryEngine.query(
+                query,
+                map(
+                        props.identification_uri.name(), identification.getExternalResourceUri().toString(),
+                        Neo4jFriendlyResource.props.owner.name(), ownerUserName,
+                        props.related_uris.name(), FriendlyResourceJson.multipleToJson(relatedResources)
+                )
         );
     }
 
@@ -86,15 +111,5 @@ public class RelatedIdentificationOperatorNeo4j implements RelatedIdentification
         return "START node=node:node_auto_index('" +
                 props.identification_uri + ":\"" + identification.getExternalResourceUri() + "\" AND " +
                 Neo4jFriendlyResource.props.owner + ":" + username + "') ";
-    }
-
-    private JSONArray uriArrayFromResources(Set<URI> identificationUris) {
-        JSONArray array = new JSONArray();
-        for (URI uri : identificationUris) {
-            array.put(
-                    uri
-            );
-        }
-        return array;
     }
 }

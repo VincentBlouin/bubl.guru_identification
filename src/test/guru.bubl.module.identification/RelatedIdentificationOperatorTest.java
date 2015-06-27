@@ -15,6 +15,7 @@ import org.junit.Test;
 
 import javax.inject.Inject;
 
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 public class RelatedIdentificationOperatorTest extends AdaptableGraphComponentTest {
@@ -50,7 +51,6 @@ public class RelatedIdentificationOperatorTest extends AdaptableGraphComponentTe
                         user
                 ).uri()
         );
-
         relatedIdentificationOperator.relateResourceToIdentification(
                 aVertexRepresentingATshirt,
                 modelTestScenarios.tShirt()
@@ -62,6 +62,36 @@ public class RelatedIdentificationOperatorTest extends AdaptableGraphComponentTe
                 ).contains(
                         aVertexRepresentingATshirt
                 )
+        );
+    }
+
+    @Test
+    public void can_remove_related_identification() {
+        User user = User.withEmailAndUsername("a", "b");
+        FriendlyResourcePojo aVertexRepresentingATshirt = new FriendlyResourcePojo(
+                testScenarios.createAVertex(
+                        user
+                ).uri()
+        );
+        relatedIdentificationOperator.relateResourceToIdentification(
+                aVertexRepresentingATshirt,
+                modelTestScenarios.tShirt()
+        );
+        assertFalse(
+                relatedIdentificationOperator.getResourcesRelatedToIdentificationForUser(
+                        modelTestScenarios.tShirt(),
+                        user
+                ).isEmpty()
+        );
+        relatedIdentificationOperator.removeRelatedResourceToIdentification(
+                aVertexRepresentingATshirt,
+                modelTestScenarios.tShirt()
+        );
+        assertTrue(
+                relatedIdentificationOperator.getResourcesRelatedToIdentificationForUser(
+                        modelTestScenarios.tShirt(),
+                        user
+                ).isEmpty()
         );
     }
 }

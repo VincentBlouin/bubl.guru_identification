@@ -16,6 +16,11 @@ public interface RelatedIdentificationOperator {
             Identification identification
     );
 
+    RelatedIdentificationOperator removeRelatedResourceToIdentification(
+            FriendlyResourcePojo relatedResource,
+            Identification identification
+    );
+
     Set<FriendlyResourcePojo> getResourcesRelatedToIdentificationForUser(
             Identification identification,
             User user
