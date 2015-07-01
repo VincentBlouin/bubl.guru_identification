@@ -8,6 +8,7 @@ import com.google.inject.Injector;
 import guru.bubl.module.model.User;
 import guru.bubl.module.model.graph.AdaptableGraphComponentTest;
 import guru.bubl.module.model.graph.FriendlyResourcePojo;
+import guru.bubl.module.model.graph.vertex.VertexOperator;
 import guru.bubl.module.model.test.scenarios.TestScenarios;
 import org.junit.Before;
 import org.junit.Test;
@@ -198,6 +199,7 @@ public class RelatedIdentificationOperatorTest extends AdaptableGraphComponentTe
                 ).contains(otherUserResource)
         );
     }
+
     @Test
     public void removing_related_identification_doesnt_erase_other_user_related_identifications_for_same_identification() {
         User someUser = User.withEmailAndUsername("a", "b");
@@ -229,6 +231,59 @@ public class RelatedIdentificationOperatorTest extends AdaptableGraphComponentTe
                         modelTestScenarios.tShirt(),
                         someUser
                 ).contains(user1Resource)
+        );
+    }
+
+    @Test
+    public void can_rebuild_related_identifications() {
+        VertexOperator someVertex = testScenarios.createAVertex(
+                someUser
+        );
+        someVertex.addGenericIdentification(
+                modelTestScenarios.computerScientistType()
+        );
+        FriendlyResourcePojo someVertexAsFriendlyResource = new FriendlyResourcePojo(
+                someVertex.uri()
+        );
+        assertFalse(
+                relatedIdentificationOperator.getResourcesRelatedToIdentificationForUser(
+                        modelTestScenarios.computerScientistType(),
+                        someUser
+                ).contains(someVertexAsFriendlyResource)
+        );
+        relatedIdentificationOperator.rebuild();
+        assertTrue(
+                relatedIdentificationOperator.getResourcesRelatedToIdentificationForUser(
+                        modelTestScenarios.computerScientistType(),
+                        someUser
+                ).contains(someVertexAsFriendlyResource)
+        );
+    }
+
+    @Test
+    public void removes_existing_related_identifications_before_rebuild() {
+        VertexOperator someVertex = testScenarios.createAVertex(
+                someUser
+        );
+        someVertex.addGenericIdentification(
+                modelTestScenarios.computerScientistType()
+        );
+        FriendlyResourcePojo someVertexAsFriendlyResource = new FriendlyResourcePojo(
+                someVertex.uri()
+        );
+        relatedIdentificationOperator.relateResourceToIdentification(
+                someVertexAsFriendlyResource,
+                modelTestScenarios.computerScientistType()
+        );
+        someVertex.removeIdentification(
+                modelTestScenarios.computerScientistType()
+        );
+        relatedIdentificationOperator.rebuild();
+        assertFalse(
+                relatedIdentificationOperator.getResourcesRelatedToIdentificationForUser(
+                        modelTestScenarios.computerScientistType(),
+                        someUser
+                ).contains(someVertexAsFriendlyResource)
         );
     }
 }

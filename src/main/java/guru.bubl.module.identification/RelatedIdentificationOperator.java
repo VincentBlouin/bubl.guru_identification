@@ -25,4 +25,5 @@ public interface RelatedIdentificationOperator {
             Identification identification,
             User user
     );
+    RelatedIdentificationOperator rebuild();
 }
